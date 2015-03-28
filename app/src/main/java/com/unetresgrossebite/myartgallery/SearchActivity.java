@@ -3,12 +3,15 @@ package com.unetresgrossebite.myartgallery;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +25,7 @@ import java.util.Arrays;
 
 public class SearchActivity extends ActionBarActivity {
     private String base = null, type = null, pattern = "";
-    private int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
+    private int timestamp_start = 0, timestamp_stop = 0, cursor = 0, responsePerPage = 20;
     private ArrayAdapter itemsAdapter = null;
     Boolean bottom_reached = false;
     final private Boolean debug = false;
@@ -108,7 +111,6 @@ public class SearchActivity extends ActionBarActivity {
                     } else {
                         itemsReturned.addAll(Arrays.asList(responseArray));
                         itemsAdapter.addAll(itemsReturned);
-//                      itemsAdapter.notifyDataSetChanged(); wtf?
                     }
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";
@@ -143,13 +145,37 @@ public class SearchActivity extends ActionBarActivity {
             this.timestamp_stop = getIntent().getExtras().getInt("stop");
         }
 
+        EditText searchbox = (EditText) findViewById(R.id.searchbox);
+        if (searchbox != null) {
+            searchbox.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    EditText searchbox = (EditText) findViewById(R.id.searchbox);
+                    String read = searchbox.getText().toString();
+                    String translate = read.replaceAll(" ", "-").toLowerCase();
+
+                    if (translate.equals(pattern)) {
+                        return;
+                    }
+                    pattern = translate;
+                    cursor = 0;
+                    try {
+                        qREST();
+                    } catch (JSONException e) {
+                        String error = "Error parsing server's response [" + e.toString() + "]";
+                        Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
         ListView list = (ListView) findViewById(R.id.list);
         if (list != null) {
             list.setOnScrollListener(new EndlessScrollListener() {
                 public void onLoadMore(int page, int totalItemsCount) {
                     if (bottom_reached) { return; }
                     try {
-                        shown = totalItemsCount;
                         cursor = page;
                         qREST();
                     } catch (JSONException e) {

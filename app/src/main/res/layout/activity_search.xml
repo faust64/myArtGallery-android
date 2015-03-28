@@ -9,6 +9,11 @@
     android:background="@color/Wheat"
     tools:context="com.unetresgrossebite.myartgallery.SearchActivity">
 
+    <EditText android:id="@+id/searchbox"
+        android:background="@color/Wheat"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:hint="@string/msg_search" />
     <ListView
         android:id="@+id/list"
         android:fadingEdge="vertical"
@@ -16,12 +21,14 @@
         android:longClickable="true"
         android:background="@color/Wheat"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchbox" />
     <TextView
         android:id="@+id/empty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@color/Wheat"
+        android:layout_below="@id/searchbox"
         android:text="@string/msg_query_in_progress" />
 </RelativeLayout>
