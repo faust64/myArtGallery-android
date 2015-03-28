@@ -70,7 +70,12 @@ public class SearchActivity extends ActionBarActivity {
 
                     if (view == null || qmsg == null) { return; }
                     if (cursor == 0 && response.length() == 0) {
-                        qmsg.setText("no records in this base yet");
+                        if (pattern.equals("")) {
+                            qmsg.setText("no records in this base yet");
+                        } else {
+                            qmsg.setText("no record matching such pattern");
+                            itemsAdapter.clear();
+                        }
                         bottom_reached = true;
                         return;
                     } else if (response.length() == 0) {
