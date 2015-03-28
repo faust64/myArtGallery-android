@@ -16,6 +16,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SearchActivity"
+            android:label="@string/title_activity_search"
+            android:parentActivityName=".IndexActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.unetresgrossebite.myartgallery.IndexActivity" />
+        </activity>
+        <activity
+            android:name=".ShowArtistActivity"
+            android:label="@string/title_activity_show_artist"
+            android:parentActivityName=".SearchActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.unetresgrossebite.myartgallery.SearchActivity" />
+        </activity>
     </application>
 
 </manifest>

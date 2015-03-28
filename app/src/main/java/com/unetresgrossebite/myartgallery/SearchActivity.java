@@ -10,39 +10,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
-/*public class IndexActivity extends ActionBarActivity {*/
-public class IndexActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
-    ListView listView;
+public class SearchActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_index);
+        setContentView(R.layout.activity_search);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-/*        listView = (ListView) findViewById(R.id.categoriesList);
-        listView.setOnItemClickListener(this);*/
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
-        Toast.makeText(getApplicationContext(), ((TextView) view).getText(),
-                Toast.LENGTH_SHORT).show();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_index, menu);
+        getMenuInflater().inflate(R.menu.menu_search, menu);
         return true;
     }
 
@@ -72,7 +59,7 @@ public class IndexActivity extends ActionBarActivity implements AdapterView.OnIt
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_index, container, false);
+            View rootView = inflater.inflate(R.layout.fragment_search, container, false);
             return rootView;
         }
     }
