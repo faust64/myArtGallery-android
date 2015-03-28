@@ -14,53 +14,67 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class SearchActivity extends ActionBarActivity {
-    static String base = null, type = null, pattern = "";
-    static int timestamp_start = 0, timestamp_stop = 0, cursor = 0;
+    String base = null, type = null, pattern = "";
+    int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
+    ArrayAdapter itemsAdapter = null;
+    Boolean bottom_reached = false;
 
     public void qREST() throws JSONException {
-        String url, baseurl = new String("search/") + base + pattern;
+        String url, cursorurl = "", filterurl;
         myRestClient client = new myRestClient();
 
+        if (cursor > 0) { cursorurl = "/+" + Integer.toString(cursor * responsePerPage); }
         if (pattern == "") {
-            url = new String("top/artists/");
-        } else if (cursor > 0) {
-            url = baseurl + new String("/+") + Integer.toString(cursor);
-        } else { url = baseurl; }
+            if (base == "events") { url = base + cursorurl + "/"; }
+            else { url = "top/" + base + cursorurl + "/"; }
+        } else { url = "search/" + base + cursorurl + "/" + pattern + "/"; }
+        if (type != null) { filterurl = url + "?type=" + type; }
+        else { filterurl = url; }
 
-//      Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(url), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(filterurl),
+//                Toast.LENGTH_SHORT).show();
 
-        client.get(url, null, new JsonHttpResponseHandler() {
+        client.get(filterurl, null, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Toast.makeText(getApplicationContext(), "Unexpected object received",
                         Toast.LENGTH_SHORT).show();
-/*                try {
-                    Toast.makeText(getApplicationContext(), response.toString(),
-                            Toast.LENGTH_SHORT).show();
-                } catch (JSONException e) {
-                    String error = "Error parsing server's response [" + e.toString() + "]";
-                    Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
-                }
-*/            }
+            }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 try {
-                    HashMap<String, String> responseMap = new HashMap<String,String>();
-                    String[] responseArray = new String[response.length()];
                     ListView view = (ListView) findViewById(R.id.list);
                     TextView qmsg = (TextView) findViewById(R.id.empty);
+                    ArrayList itemsReturned = new ArrayList<String>();
+                    int len;
 
-                    if (view == null) { return; }
-                    for (int i = 0; i < response.length(); i++) {
+                    if (view == null || qmsg == null) { return; }
+                    if (cursor == 0 && response.length() == 0) {
+                        qmsg.setText("no records in this base yet");
+                        bottom_reached = true;
+                        return;
+                    } else if (response.length() == 0) {
+                        bottom_reached = true;
+                        return;
+                    }
+                    if (response.length() > responsePerPage) { len = responsePerPage; }
+                    else {
+                        len = response.length();
+                        bottom_reached = true;
+                    }
+
+                    String[] responseArray = new String[len];
+
+                    for (int i = 0; i < len; i++) {
                         JSONObject iterate = response.getJSONObject(i);
-                        String dname, id;
+                        String dname, id = response.getJSONObject(i).getString("id");
 
-                        id = response.getJSONObject(i).getString("id");
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
                                 dname = renderFirstname(iterate.getString("firstname"))
@@ -68,18 +82,25 @@ public class SearchActivity extends ActionBarActivity {
                             } else {
                                 dname = renderLastname(iterate.getString("lastname"));
                             }
+                        } else if (iterate.has("title")) {
+                            dname = renderFirstname(iterate.getString("title"));
                         } else if (iterate.has("dname")) {
                             dname = renderLastname(iterate.getString("dname"));
                         } else { dname = "Unrecognized object structure"; }
-                        responseMap.put(id, dname);
                         responseArray[i] = dname;
-//                      Toast.makeText(getApplicationContext(), dname, Toast.LENGTH_LONG).show();
                     }
 
-                    ArrayAdapter items = new ArrayAdapter<String>(getApplicationContext(),
-                            android.R.layout.simple_list_item_1, responseArray);
-                    qmsg.setText("");
-                    view.setAdapter(items);
+                    if (cursor == 0) {
+                        qmsg.setText("");
+                        itemsReturned.addAll(Arrays.asList(responseArray));
+                        itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
+                                android.R.layout.simple_list_item_1, itemsReturned);
+                        view.setAdapter(itemsAdapter);
+                    } else {
+                        itemsReturned.addAll(Arrays.asList(responseArray));
+                        itemsAdapter.addAll(itemsReturned);
+//                      itemsAdapter.notifyDataSetChanged(); wtf?
+                    }
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
@@ -93,7 +114,7 @@ public class SearchActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        if (base == null) {
+
             base = getIntent().getExtras().getString("base");
             if (base == "events") {
                 if (getIntent().getExtras().getString("type") != null) {
@@ -101,7 +122,7 @@ public class SearchActivity extends ActionBarActivity {
                 }
             }
             if (getIntent().getExtras().getString("pattern") != null) {
-                pattern = new String("/") + getIntent().getExtras().getString("pattern") + new String("/");
+                pattern = getIntent().getExtras().getString("pattern");
             }
             if (getIntent().getExtras().getInt("page") > 0) {
                 cursor = getIntent().getExtras().getInt("page");
@@ -112,8 +133,24 @@ public class SearchActivity extends ActionBarActivity {
             if (getIntent().getExtras().getInt("stop") > 0) {
                 timestamp_stop = getIntent().getExtras().getInt("stop");
             }
-//          Toast.makeText(SearchActivity.this, base, Toast.LENGTH_SHORT).show();
-        }
+
+            ListView list = (ListView) findViewById(R.id.list);
+            if (list != null) {
+                list.setOnScrollListener(new EndlessScrollListener() {
+                    public void onLoadMore(int page, int totalItemsCount) {
+                        if (bottom_reached) { return; }
+                        try {
+                            shown = totalItemsCount;
+                            cursor = page;
+                            qREST();
+                        } catch (JSONException e) {
+                            String error = "Error parsing server's response [" + e.toString() + "]";
+                            Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
 
         try {
             qREST();

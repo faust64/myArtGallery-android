@@ -44,12 +44,16 @@ public class IndexActivity extends ActionBarActivity {
         startActivity(searchArtist);
     }
     public void doSearchArtwork(View view) {
-        Toast.makeText(IndexActivity.this, "artwork",
-                Toast.LENGTH_SHORT).show();
+        Intent searchArtwork = new Intent(IndexActivity.this, SearchActivity.class);
+
+        searchArtwork.putExtra("base", "artworks");
+        startActivity(searchArtwork);
     }
     public void doSearchEvent(View view) {
-        Toast.makeText(IndexActivity.this, "event",
-                Toast.LENGTH_SHORT).show();
+        Intent searchEvent = new Intent(IndexActivity.this, SearchActivity.class);
+
+        searchEvent.putExtra("base", "events");
+        startActivity(searchEvent);
     }
     public void myArtGallery(View view) {
         Toast.makeText(IndexActivity.this, "salut gallerie",
