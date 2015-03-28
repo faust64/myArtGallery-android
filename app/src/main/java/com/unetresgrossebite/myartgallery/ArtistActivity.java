@@ -43,6 +43,12 @@ public class ArtistActivity extends ActionBarActivity {
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 try {
                     TextView title = (TextView) findViewById(R.id.artist_name);
+
+                    if (response.length() == 0) {
+                        title.setText("no records in this base yet");
+                        return;
+                    }
+
                     ListView data = (ListView) findViewById(R.id.artist_data);
                     JSONObject artistdata = response.getJSONObject(0);
                     ArrayList itemsReturned = new ArrayList<String>();

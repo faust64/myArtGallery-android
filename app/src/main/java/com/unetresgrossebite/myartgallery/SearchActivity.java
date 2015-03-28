@@ -82,15 +82,15 @@ public class SearchActivity extends ActionBarActivity {
 
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
-                                dname = renderFirstname(iterate.getString("firstname"))
-                                      + " " + renderLastname(iterate.getString("lastname"));
+                                dname = iterate.getString("firstname") + "-"
+                                        + iterate.getString("lastname");
                             } else {
-                                dname = renderLastname(iterate.getString("lastname"));
+                                dname = iterate.getString("lastname");
                             }
-                        } else if (iterate.has("title")) {
-                            dname = renderFirstname(iterate.getString("title"));
                         } else if (iterate.has("dname")) {
-                            dname = renderLastname(iterate.getString("dname"));
+                            dname = iterate.getString("dname");
+                        } else if (iterate.has("title")) {
+                            dname = iterate.getString("title");
                         } else { dname = "Unrecognized object structure"; }
                         responseArray[i] = dname;
                     }
@@ -98,7 +98,7 @@ public class SearchActivity extends ActionBarActivity {
                     if (cursor == 0) {
                         qmsg.setText("");
                         itemsReturned.addAll(Arrays.asList(responseArray));
-                        itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
+                        itemsAdapter = new ArrayAdapter<SearchObject>(getApplicationContext(),
                                 android.R.layout.simple_list_item_1, itemsReturned);
                         view.setAdapter(itemsAdapter);
                     } else {
@@ -159,15 +159,24 @@ public class SearchActivity extends ActionBarActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     ListView list = (ListView) findViewById(R.id.list);
-                    String item = list.getItemAtPosition(position).toString();
-                    Intent showArtist = new Intent(SearchActivity.this, ArtistActivity.class);
+                    SearchObject item = ((SearchObject) list.getItemAtPosition(position));
+                    Intent showRecord = null;
 
-                    showArtist.putExtra("dname", renderDname(item));
-                    startActivity(showArtist);
+                    Toast.makeText(getApplicationContext(),
+                            "You selected : " + item.toDname(), Toast.LENGTH_SHORT).show();/*
+                    if (base == "artists") {
+                        showRecord = new Intent(SearchActivity.this, ArtistActivity.class);
+                    } else if (base == "artworks") {
+                    } else if (base == "events") {
+                    }
+                    showRecord.putExtra("dname", item.toDname());
+                    if (showRecord != null) {
+                        startActivity(showRecord);
+                    }
                     if (debug == true) {
                         Toast.makeText(getApplicationContext(),
-                                "You selected : " + renderDname(item), Toast.LENGTH_SHORT).show();
-                    }
+                                "You selected : " + item.toDname(), Toast.LENGTH_SHORT).show();
+                    }*/
                 }
             });
         }
@@ -196,22 +205,5 @@ public class SearchActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private String renderFirstname(String input) {
-        return Character.toUpperCase(input.charAt(0)) + input.substring(1);
-    }
-
-    private String renderLastname(String input) {
-        return input.toUpperCase();
-    }
-
-    private String renderDname(String input) {
-        String tmp1 = input.toLowerCase().replaceAll(" ", "-").replaceAll("æ", "ae");
-        String tmp2 = tmp1.replaceAll("ç", "c").replaceAll("[ūúǔùüǖǘǚǜ]", "u");
-        String tmp3 = tmp2.replaceAll("[āáǎà]", "a").replaceAll("[ēéěèë]", "e");
-        String tmp4 = tmp3.replaceAll("[īíǐì]", "i").replaceAll("[ōóǒòö]", "o");
-
-        return tmp4;
     }
 }
