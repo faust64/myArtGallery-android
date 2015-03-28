@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class SearchActivity extends ActionBarActivity {
     String base = null, type = null, pattern = "";
     int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
-    ArrayAdapter itemsAdapter = null;
+    SearchAdapter itemsAdapter = null;
     Boolean bottom_reached = false, debug = false;
 
     public void qREST() throws JSONException {
@@ -54,7 +54,6 @@ public class SearchActivity extends ActionBarActivity {
                 try {
                     ListView view = (ListView) findViewById(R.id.list);
                     TextView qmsg = (TextView) findViewById(R.id.empty);
-                    ArrayList itemsReturned = new ArrayList<String>();
                     int len;
 
                     if (view == null || qmsg == null) { return; }
@@ -73,35 +72,45 @@ public class SearchActivity extends ActionBarActivity {
                     }
 
                     String[] responseArray = new String[len];
+                    String[] dnameArray = new String[len];
+                    String[] idArray = new String[len];
 
                     for (int i = 0; i < len; i++) {
                         JSONObject iterate = response.getJSONObject(i);
-                        String dname;
 
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
-                                dname = renderFirstname(iterate.getString("firstname"))
-                                      + " " + renderLastname(iterate.getString("lastname"));
+                                responseArray[i] = renderFirstname(iterate.getString("firstname"))
+                                        + " " + renderLastname(iterate.getString("lastname"));
                             } else {
-                                dname = renderLastname(iterate.getString("lastname"));
+                                responseArray[i] = renderLastname(iterate.getString("lastname"));
                             }
+                            dnameArray[i] = "";
+                            idArray[i] = iterate.getString("id");
                         } else if (iterate.has("title")) {
-                            dname = renderFirstname(iterate.getString("title"));
+                            responseArray[i] = renderFirstname(iterate.getString("title"));
+                            dnameArray[i] = iterate.getString("dname");
+                            idArray[i] = "";
                         } else if (iterate.has("dname")) {
-                            dname = renderLastname(iterate.getString("dname"));
-                        } else { dname = "Unrecognized object structure"; }
-                        responseArray[i] = dname;
+                            responseArray[i] = renderLastname(iterate.getString("dname"));
+                            dnameArray[i] = iterate.getString("dname");
+                            idArray[i] = iterate.getString("id");
+                        } else {
+                            responseArray[i] = "Unrecognized object structure";
+                            dnameArray[i] = idArray[i] = "";
+                        }
                     }
 
+                    if (itemsAdapter == null) {
+                        itemsAdapter = new SearchAdapter(getApplicationContext(),
+                                responseArray, dnameArray, idArray);
+                    } else {
+                        itemsAdapter.addAll(responseArray, dnameArray, idArray);
+                    }
                     if (cursor == 0) {
                         qmsg.setText("");
-                        itemsReturned.addAll(Arrays.asList(responseArray));
-                        itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_list_item_1, itemsReturned);
                         view.setAdapter(itemsAdapter);
                     } else {
-                        itemsReturned.addAll(Arrays.asList(responseArray));
-                        itemsAdapter.addAll(itemsReturned);
 //                      itemsAdapter.notifyDataSetChanged(); wtf?
                     }
                 } catch (JSONException e) {
