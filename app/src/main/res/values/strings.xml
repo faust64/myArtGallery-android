@@ -6,5 +6,6 @@
     <string name="action_search_event">Search Event</string>
     <string name="action_settings">Settings</string>
     <string name="msg_query_in_progress">Querying database...</string>
+    <string name="title_activity_artist">Artist</string>
     <string name="title_activity_search">Database Search</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.unetresgrossebite.myartgallery;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -20,12 +21,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SearchActivity extends ActionBarActivity {
-    String base = null, type = null, pattern = "";
-    int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
-    SearchAdapter itemsAdapter = null;
-    Boolean bottom_reached = false, debug = false;
+    private String base = null, type = null, pattern = "";
+    private int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
+    private ArrayAdapter itemsAdapter = null;
+    Boolean bottom_reached = false;
+    final private Boolean debug = false;
 
-    public void qREST() throws JSONException {
+    private void qREST() throws JSONException {
         String url, cursorurl = "", filterurl;
         myRestClient client = new myRestClient();
 
@@ -37,7 +39,7 @@ public class SearchActivity extends ActionBarActivity {
         if (type != null) { filterurl = url + "?type=" + type; }
         else { filterurl = url; }
 
-        if (debug) {
+        if (this.debug) {
             Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(filterurl),
                     Toast.LENGTH_SHORT).show();
         }
@@ -54,6 +56,7 @@ public class SearchActivity extends ActionBarActivity {
                 try {
                     ListView view = (ListView) findViewById(R.id.list);
                     TextView qmsg = (TextView) findViewById(R.id.empty);
+                    ArrayList itemsReturned = new ArrayList<String>();
                     int len;
 
                     if (view == null || qmsg == null) { return; }
@@ -72,45 +75,35 @@ public class SearchActivity extends ActionBarActivity {
                     }
 
                     String[] responseArray = new String[len];
-                    String[] dnameArray = new String[len];
-                    String[] idArray = new String[len];
 
                     for (int i = 0; i < len; i++) {
                         JSONObject iterate = response.getJSONObject(i);
+                        String dname;
 
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
-                                responseArray[i] = renderFirstname(iterate.getString("firstname"))
-                                        + " " + renderLastname(iterate.getString("lastname"));
+                                dname = renderFirstname(iterate.getString("firstname"))
+                                      + " " + renderLastname(iterate.getString("lastname"));
                             } else {
-                                responseArray[i] = renderLastname(iterate.getString("lastname"));
+                                dname = renderLastname(iterate.getString("lastname"));
                             }
-                            dnameArray[i] = "";
-                            idArray[i] = iterate.getString("id");
                         } else if (iterate.has("title")) {
-                            responseArray[i] = renderFirstname(iterate.getString("title"));
-                            dnameArray[i] = iterate.getString("dname");
-                            idArray[i] = "";
+                            dname = renderFirstname(iterate.getString("title"));
                         } else if (iterate.has("dname")) {
-                            responseArray[i] = renderLastname(iterate.getString("dname"));
-                            dnameArray[i] = iterate.getString("dname");
-                            idArray[i] = iterate.getString("id");
-                        } else {
-                            responseArray[i] = "Unrecognized object structure";
-                            dnameArray[i] = idArray[i] = "";
-                        }
+                            dname = renderLastname(iterate.getString("dname"));
+                        } else { dname = "Unrecognized object structure"; }
+                        responseArray[i] = dname;
                     }
 
-                    if (itemsAdapter == null) {
-                        itemsAdapter = new SearchAdapter(getApplicationContext(),
-                                responseArray, dnameArray, idArray);
-                    } else {
-                        itemsAdapter.addAll(responseArray, dnameArray, idArray);
-                    }
                     if (cursor == 0) {
                         qmsg.setText("");
+                        itemsReturned.addAll(Arrays.asList(responseArray));
+                        itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
+                                android.R.layout.simple_list_item_1, itemsReturned);
                         view.setAdapter(itemsAdapter);
                     } else {
+                        itemsReturned.addAll(Arrays.asList(responseArray));
+                        itemsAdapter.addAll(itemsReturned);
 //                      itemsAdapter.notifyDataSetChanged(); wtf?
                     }
                 } catch (JSONException e) {
@@ -127,52 +120,57 @@ public class SearchActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-            base = getIntent().getExtras().getString("base");
-            if (new String("events").equals(base)) {
-                if (getIntent().getExtras().getString("type") != null) {
-                    type = getIntent().getExtras().getString("type");
-                }
+        this.base = getIntent().getExtras().getString("base");
+        if (new String("events").equals(base)) {
+            if (getIntent().getExtras().getString("type") != null) {
+                this.type = getIntent().getExtras().getString("type");
             }
-            if (getIntent().getExtras().getString("pattern") != null) {
-                pattern = getIntent().getExtras().getString("pattern");
-            }
-            if (getIntent().getExtras().getInt("page") > 0) {
-                cursor = getIntent().getExtras().getInt("page");
-            }
-            if (getIntent().getExtras().getInt("start") > 0) {
-                timestamp_start = getIntent().getExtras().getInt("start");
-            }
-            if (getIntent().getExtras().getInt("stop") > 0) {
-                timestamp_stop = getIntent().getExtras().getInt("stop");
-            }
+        }
+        if (getIntent().getExtras().getString("pattern") != null) {
+            this.pattern = getIntent().getExtras().getString("pattern");
+        }
+        if (getIntent().getExtras().getInt("page") > 0) {
+            this.cursor = getIntent().getExtras().getInt("page");
+        }
+        if (getIntent().getExtras().getInt("start") > 0) {
+            this.timestamp_start = getIntent().getExtras().getInt("start");
+        }
+        if (getIntent().getExtras().getInt("stop") > 0) {
+            this.timestamp_stop = getIntent().getExtras().getInt("stop");
+        }
 
-            ListView list = (ListView) findViewById(R.id.list);
-            if (list != null) {
-                list.setOnScrollListener(new EndlessScrollListener() {
-                    public void onLoadMore(int page, int totalItemsCount) {
-                        if (bottom_reached) { return; }
-                        try {
-                            shown = totalItemsCount;
-                            cursor = page;
-                            qREST();
-                        } catch (JSONException e) {
-                            String error = "Error parsing server's response [" + e.toString() + "]";
-                            Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                        }
+        ListView list = (ListView) findViewById(R.id.list);
+        if (list != null) {
+            list.setOnScrollListener(new EndlessScrollListener() {
+                public void onLoadMore(int page, int totalItemsCount) {
+                    if (bottom_reached) { return; }
+                    try {
+                        shown = totalItemsCount;
+                        cursor = page;
+                        qREST();
+                    } catch (JSONException e) {
+                        String error = "Error parsing server's response [" + e.toString() + "]";
+                        Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
                     }
-                });
-                list.setOnItemClickListener(new OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position,
-                                            long id) {
-                        ListView list = (ListView) findViewById(R.id.list);
-                        String item = list.getItemAtPosition(position).toString();
+                }
+            });
+            list.setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    ListView list = (ListView) findViewById(R.id.list);
+                    String item = list.getItemAtPosition(position).toString();
+                    Intent showArtist = new Intent(SearchActivity.this, ArtistActivity.class);
+
+                    showArtist.putExtra("dname", renderDname(item));
+                    startActivity(showArtist);
+                    if (debug == true) {
                         Toast.makeText(getApplicationContext(),
-                                "You selected : " + item, Toast.LENGTH_SHORT).show();
+                                "You selected : " + renderDname(item), Toast.LENGTH_SHORT).show();
                     }
-                });
-            }
+                }
+            });
+        }
 
         try {
             qREST();
@@ -206,5 +204,14 @@ public class SearchActivity extends ActionBarActivity {
 
     private String renderLastname(String input) {
         return input.toUpperCase();
+    }
+
+    private String renderDname(String input) {
+        String tmp1 = input.toLowerCase().replaceAll(" ", "-").replaceAll("æ", "ae");
+        String tmp2 = tmp1.replaceAll("ç", "c").replaceAll("[ūúǔùüǖǘǚǜ]", "u");
+        String tmp3 = tmp2.replaceAll("[āáǎà]", "a").replaceAll("[ēéěèë]", "e");
+        String tmp4 = tmp3.replaceAll("[īíǐì]", "i").replaceAll("[ōóǒòö]", "o");
+
+        return tmp4;
     }
 }
