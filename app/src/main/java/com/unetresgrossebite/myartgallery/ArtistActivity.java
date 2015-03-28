@@ -120,7 +120,7 @@ public class ArtistActivity extends ActionBarActivity {
                                 Toast.LENGTH_LONG).show();
                     }
                     itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_list_item_1, itemsReturned);
+                            R.layout.list_item, R.id.list_item_data, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";

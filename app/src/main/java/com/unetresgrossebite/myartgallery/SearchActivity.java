@@ -93,7 +93,7 @@ public class SearchActivity extends ActionBarActivity {
                                 dname = renderLastname(iterate.getString("lastname"));
                             }
                         } else if (iterate.has("dname")) {
-                            dname = renderLastname(iterate.getString("dname"));
+                            dname = renderFirstname(iterate.getString("dname").replaceAll("-", " "));
                         } else { dname = "Unrecognized object structure"; }
                         responseArray[i] = dname;
                     }
@@ -102,7 +102,7 @@ public class SearchActivity extends ActionBarActivity {
                         qmsg.setText("");
                         itemsReturned.addAll(Arrays.asList(responseArray));
                         itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_list_item_1, itemsReturned);
+                                R.layout.list_item, R.id.list_item_data, itemsReturned);
                         view.setAdapter(itemsAdapter);
                     } else {
                         itemsReturned.addAll(Arrays.asList(responseArray));

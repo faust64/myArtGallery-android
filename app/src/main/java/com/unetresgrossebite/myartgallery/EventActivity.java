@@ -18,6 +18,7 @@ import java.util.ArrayList;
 
 public class EventActivity extends ActionBarActivity {
     private String dname, link, maps;
+    final private String datefmt = "dd/MM/yyyy";
     final private Boolean debug = false;
 
     private void qREST() throws JSONException {
@@ -31,28 +32,16 @@ public class EventActivity extends ActionBarActivity {
 
         client.get(url, null, new JsonHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-/*                if (debug) {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
-                            + response.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received",
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-*/                try {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject eventdata) {
+                try {
                     TextView title = (TextView) findViewById(R.id.event_title);
 
-                    if (response.length() == 0) {
+                    if (eventdata.length() == 0) {
                         title.setText("no records in this base yet");
                         return;
                     }
 
                     ListView data = (ListView) findViewById(R.id.event_data);
-                    JSONObject eventdata = response;
                     ArrayList itemsReturned = new ArrayList<String>();
                     ArrayAdapter itemsAdapter = null;
                     String tmp = null;
@@ -72,15 +61,15 @@ public class EventActivity extends ActionBarActivity {
                             a = eventdata.getLong("starts") * 1000;
                             b = eventdata.getLong("stops") * 1000;
                             if (a == b) {
-                                tmp = "The " + DateFormat.format("dd-MM-yyyy", a).toString();
+                                tmp = "The " + DateFormat.format(datefmt, a).toString();
                             }
                             else {
-                                tmp = "From " + DateFormat.format("dd-MM-yyyy", a).toString()
-                                        + " to " + DateFormat.format("dd-MM-yyyy", b).toString();
+                                tmp = "From " + DateFormat.format(datefmt, a).toString()
+                                        + " to " + DateFormat.format(datefmt, b).toString();
                             }
                         }
                         else {
-                            tmp = "The "+ DateFormat.format("dd-MM-yyyy", eventdata.getLong("start") * 1000).toString();
+                            tmp = "The "+ DateFormat.format(datefmt, eventdata.getLong("start") * 1000).toString();
                         }
                         itemsReturned.add(tmp);
                     }
@@ -127,12 +116,23 @@ public class EventActivity extends ActionBarActivity {
                                 Toast.LENGTH_LONG).show();
                     }
                     itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                            android.R.layout.simple_list_item_1, itemsReturned);
+                            R.layout.list_item, R.id.list_item_data, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                     e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                if (debug) {
+                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
+                            + response.toString(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Unexpected object received",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
