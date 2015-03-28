@@ -2,6 +2,7 @@ package com.unetresgrossebite.myartgallery;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -15,23 +16,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 
-public class ArtistActivity extends ActionBarActivity {
-    private String dname, artist_id = null;
+public class EventActivity extends ActionBarActivity {
+    private String dname, link, maps;
     final private Boolean debug = false;
 
     private void qREST() throws JSONException {
-        String url = "artists/" + this.dname + "/";
+        String url = "events/" + this.dname + "/";
         myRestClient client = new myRestClient();
 
         if (this.debug) {
-            Toast.makeText(ArtistActivity.this, myRestClient.getAbsoluteUrl(url),
+            Toast.makeText(EventActivity.this, myRestClient.getAbsoluteUrl(url),
                     Toast.LENGTH_SHORT).show();
         }
 
         client.get(url, null, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                if (debug) {
+/*                if (debug) {
                     Toast.makeText(getApplicationContext(), "Unexpected object received: "
                             + response.toString(), Toast.LENGTH_SHORT).show();
                 } else {
@@ -42,77 +43,83 @@ public class ArtistActivity extends ActionBarActivity {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                try {
-                    TextView title = (TextView) findViewById(R.id.artist_name);
+*/                try {
+                    TextView title = (TextView) findViewById(R.id.event_title);
 
                     if (response.length() == 0) {
                         title.setText("no records in this base yet");
                         return;
                     }
 
-                    ListView data = (ListView) findViewById(R.id.artist_data);
-                    JSONObject artistdata = response.getJSONObject(0);
+                    ListView data = (ListView) findViewById(R.id.event_data);
+                    JSONObject eventdata = response;
                     ArrayList itemsReturned = new ArrayList<String>();
                     ArrayAdapter itemsAdapter = null;
                     String tmp = null;
 
                     if (title == null || data == null) { return; }
-                    if (artistdata.has("firstname")) {
-                        tmp = renderFirstname(artistdata.getString("firstname")) + " "
-                                + renderLastname(artistdata.getString("lastname"));
+                    if (eventdata.has("title")) {
+                        tmp = renderFirstname(eventdata.getString("title"));
                     } else {
-                        tmp = renderLastname(artistdata.getString("lastname"));
+                        tmp = renderFirstname(eventdata.getString("dname"));
                     }
                     title.setText(tmp);
 
-                    if (artistdata.has("dstart")) {
-                        if (artistdata.has("dstop")) {
-                            String a, b;
-                            a = artistdata.getString("dstart");
-                            b = artistdata.getString("dstop");
+                    if (eventdata.has("starts")) {
+                        if (eventdata.has("stops")) {
+                            long a, b;
 
-                            if (a.equals(b)) {
-                                tmp = "Active in " + a;
+                            a = eventdata.getLong("starts") * 1000;
+                            b = eventdata.getLong("stops") * 1000;
+                            if (a == b) {
+                                tmp = "The " + DateFormat.format("dd-MM-yyyy", a).toString();
                             }
                             else {
-                                tmp = "Active from " + a + " to " + b;
+                                tmp = "From " + DateFormat.format("dd-MM-yyyy", a).toString()
+                                        + " to " + DateFormat.format("dd-MM-yyyy", b).toString();
                             }
                         }
                         else {
-                            tmp = "Active in " + artistdata.getString("dstart");
+                            tmp = "The "+ DateFormat.format("dd-MM-yyyy", eventdata.getLong("start") * 1000).toString();
                         }
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("priceidx")) {
-                        String lookup = artistdata.getString("priceidx");
-                        if (new String("growing").equals(lookup)
-                            || new String("decreasing").equals(lookup)) {
-                            tmp = "Prices are globally " + lookup;
+                    if (eventdata.has("country")) {
+                        if (eventdata.has("city")) {
+                            if (eventdata.has("direction")) {
+                                tmp = eventdata.getString("direction") + " -- "
+                                        + eventdata.getString("city") + " ("
+                                        + eventdata.getString("country") + ")";
+                            } else {
+                                tmp = eventdata.getString("city") + " ("
+                                        + eventdata.getString("country") + ")";
+                            }
+                        } else if (eventdata.has("direction")) {
+                            tmp = eventdata.getString("direction") + " ("
+                                    + eventdata.getString("country") + ")";
                         } else {
-                            tmp = "Mostly sold: " + lookup;
+                            tmp = eventdata.getString("country");
                         }
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("turnover")) {
-                        tmp = "Turnover: " + artistdata.getString("turnover");
+                    if (eventdata.has("tel")) {
+                        tmp = "Phone: " + eventdata.getString("tel");
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("rank")) {
-                        tmp = "Rank: " + artistdata.getString("rank");
+                    if (eventdata.has("url")) {
+                        tmp = "Gallery site link";
+                        link = eventdata.getString("url");
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("bestcountry")) {
-                        if (artistdata.has("bestamount")) {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry") + " ("
-                                    + artistdata.getString("bestamount") + ")";
-                        } else {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry");
-                        }
+                    if (eventdata.has("maps")) {
+                        tmp = "Show in GoogleMaps";
+                        maps = eventdata.getString("maps");
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("id")) {
-                        tmp = "Search for related artworks";
-                        artist_id = artistdata.getString("id");
+                    if (eventdata.has("group")) {
+                        boolean value = eventdata.getBoolean("group");
+                        if (value) { tmp = "(Group show)"; }
+                        else { tmp = "(Solo show)"; }
                         itemsReturned.add(tmp);
                     }
                     if (debug) {
@@ -120,7 +127,7 @@ public class ArtistActivity extends ActionBarActivity {
                                 Toast.LENGTH_LONG).show();
                     }
                     itemsAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_list_item_1, itemsReturned);
+                            android.R.layout.simple_list_item_1, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";
@@ -134,7 +141,7 @@ public class ArtistActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist);
+        setContentView(R.layout.activity_event);
         this.dname = getIntent().getExtras().getString("dname");
 
         try {
@@ -148,7 +155,7 @@ public class ArtistActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_artist, menu);
+        getMenuInflater().inflate(R.menu.menu_event, menu);
         return true;
     }
 
@@ -160,12 +167,7 @@ public class ArtistActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
     private String renderFirstname(String input) {
         return Character.toUpperCase(input.charAt(0)) + input.substring(1);
-    }
-
-    private String renderLastname(String input) {
-        return input.toUpperCase();
     }
 }

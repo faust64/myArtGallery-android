@@ -36,6 +36,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.unetresgrossebite.myartgallery.SearchActivity" />
         </activity>
+        <activity
+            android:name=".EventActivity"
+            android:label="@string/title_activity_event"
+            android:parentActivityName=".SearchActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.unetresgrossebite.myartgallery.SearchActivity" />
+        </activity>
     </application>
 
 </manifest>
