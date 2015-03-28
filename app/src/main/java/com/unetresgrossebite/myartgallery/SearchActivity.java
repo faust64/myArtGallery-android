@@ -13,31 +13,31 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class SearchActivity extends ActionBarActivity {
     String base = null, type = null, pattern = "";
     int timestamp_start = 0, timestamp_stop = 0, cursor = 0, shown = 0, responsePerPage = 20;
     ArrayAdapter itemsAdapter = null;
-    Boolean bottom_reached = false;
+    Boolean bottom_reached = false, debug = false;
 
     public void qREST() throws JSONException {
         String url, cursorurl = "", filterurl;
         myRestClient client = new myRestClient();
 
         if (cursor > 0) { cursorurl = "/+" + Integer.toString(cursor * responsePerPage); }
-        if (pattern == "") {
-            if (base == "events") { url = base + cursorurl + "/"; }
+        if (new String("").equals(pattern)) {
+            if (new String("events").equals(base)) { url = base + cursorurl + "/"; }
             else { url = "top/" + base + cursorurl + "/"; }
         } else { url = "search/" + base + cursorurl + "/" + pattern + "/"; }
         if (type != null) { filterurl = url + "?type=" + type; }
         else { filterurl = url; }
 
-//        Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(filterurl),
-//                Toast.LENGTH_SHORT).show();
+        if (debug) {
+            Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(filterurl),
+                    Toast.LENGTH_SHORT).show();
+        }
 
         client.get(filterurl, null, new JsonHttpResponseHandler() {
             @Override
@@ -73,7 +73,7 @@ public class SearchActivity extends ActionBarActivity {
 
                     for (int i = 0; i < len; i++) {
                         JSONObject iterate = response.getJSONObject(i);
-                        String dname, id = response.getJSONObject(i).getString("id");
+                        String dname;
 
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
@@ -116,7 +116,7 @@ public class SearchActivity extends ActionBarActivity {
         setContentView(R.layout.activity_search);
 
             base = getIntent().getExtras().getString("base");
-            if (base == "events") {
+            if (new String("events").equals(base)) {
                 if (getIntent().getExtras().getString("type") != null) {
                     type = getIntent().getExtras().getString("type");
                 }
@@ -163,19 +163,14 @@ public class SearchActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
