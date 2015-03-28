@@ -4,6 +4,9 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import org.apache.http.Header;
@@ -27,7 +30,7 @@ public class SearchActivity extends ActionBarActivity {
             url = baseurl + new String("/+") + Integer.toString(cursor);
         } else { url = baseurl; }
 
-        Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(url), Toast.LENGTH_SHORT).show();
+//      Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(url), Toast.LENGTH_SHORT).show();
 
         client.get(url, null, new JsonHttpResponseHandler() {
             @Override
@@ -48,6 +51,11 @@ public class SearchActivity extends ActionBarActivity {
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 try {
                     HashMap<String, String> responseMap = new HashMap<String,String>();
+                    String[] responseArray = new String[response.length()];
+                    ListView view = (ListView) findViewById(R.id.list);
+                    TextView qmsg = (TextView) findViewById(R.id.empty);
+
+                    if (view == null) { return; }
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject iterate = response.getJSONObject(i);
                         String dname, id;
@@ -64,8 +72,14 @@ public class SearchActivity extends ActionBarActivity {
                             dname = renderLastname(iterate.getString("dname"));
                         } else { dname = "Unrecognized object structure"; }
                         responseMap.put(id, dname);
-                        Toast.makeText(getApplicationContext(), dname, Toast.LENGTH_SHORT).show();
+                        responseArray[i] = dname;
+//                      Toast.makeText(getApplicationContext(), dname, Toast.LENGTH_LONG).show();
                     }
+
+                    ArrayAdapter items = new ArrayAdapter<String>(getApplicationContext(),
+                            android.R.layout.simple_list_item_1, responseArray);
+                    qmsg.setText("");
+                    view.setAdapter(items);
                 } catch (JSONException e) {
                     String error = "Error parsing server's response [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
@@ -98,7 +112,7 @@ public class SearchActivity extends ActionBarActivity {
             if (getIntent().getExtras().getInt("stop") > 0) {
                 timestamp_stop = getIntent().getExtras().getInt("stop");
             }
-            Toast.makeText(SearchActivity.this, base, Toast.LENGTH_SHORT).show();
+//          Toast.makeText(SearchActivity.this, base, Toast.LENGTH_SHORT).show();
         }
 
         try {
