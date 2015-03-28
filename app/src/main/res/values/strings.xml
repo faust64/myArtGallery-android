@@ -1,19 +1,10 @@
 <resources>
-    <string name="action_settings">Settings</string>
     <string name="app_name">myArtGallery</string>
-    <string name="app_description">Thanks to artprice, artrank &amp; artfacts public records</string>
-    <string name="title_activity_search">Search</string>
-    <string name="title_activity_show_artist">Artist Name</string>
-    <string-array name="categories_array">
-        <item>Search Artists</item>
-        <item>Search Artworks</item>
-        <item>Search Events</item>
-        <item>My Art Gallery</item>
-    </string-array>
-    <string-array name="lookup">
-        <item>found item 1</item>
-        <item>found item 2</item>
-        <item>...</item>
-        <item>found item N</item>
-    </string-array>
+    <string name="app_subtitle">Thanks to artprice, artrank &amp; artfacts public records</string>
+    <string name="action_search_artist">Search Artist</string>
+    <string name="action_search_artwork">Search Artwork</string>
+    <string name="action_search_event">Search Event</string>
+    <string name="action_settings">Settings</string>
+    <string name="msg_query_in_progress">Querying database...</string>
+    <string name="title_activity_search">Database Search</string>
 </resources>

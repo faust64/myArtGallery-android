@@ -1,30 +1,114 @@
 package com.unetresgrossebite.myartgallery;
 
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
+import android.widget.Toast;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 
 public class SearchActivity extends ActionBarActivity {
+    static String base = null, type = null, pattern = "";
+    static int timestamp_start = 0, timestamp_stop = 0, cursor = 0;
+
+    public void qREST() throws JSONException {
+        String url, baseurl = new String("search/") + base + pattern;
+        myRestClient client = new myRestClient();
+
+        if (pattern == "") {
+            url = new String("top/artists/");
+        } else if (cursor > 0) {
+            url = baseurl + new String("/+") + Integer.toString(cursor);
+        } else { url = baseurl; }
+
+        Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(url), Toast.LENGTH_SHORT).show();
+
+        client.get(url, null, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                Toast.makeText(getApplicationContext(), "Unexpected object received",
+                        Toast.LENGTH_SHORT).show();
+/*                try {
+                    Toast.makeText(getApplicationContext(), response.toString(),
+                            Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+*/            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                try {
+                    HashMap<String, String> responseMap = new HashMap<String,String>();
+                    for (int i = 0; i < response.length(); i++) {
+                        JSONObject iterate = response.getJSONObject(i);
+                        String dname, id;
+
+                        id = response.getJSONObject(i).getString("id");
+                        if (iterate.has("lastname")) {
+                            if (iterate.has("firstname")) {
+                                dname = renderFirstname(iterate.getString("firstname"))
+                                      + " " + renderLastname(iterate.getString("lastname"));
+                            } else {
+                                dname = renderLastname(iterate.getString("lastname"));
+                            }
+                        } else if (iterate.has("dname")) {
+                            dname = renderLastname(iterate.getString("dname"));
+                        } else { dname = "Unrecognized object structure"; }
+                        responseMap.put(id, dname);
+                        Toast.makeText(getApplicationContext(), dname, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
+        if (base == null) {
+            base = getIntent().getExtras().getString("base");
+            if (base == "events") {
+                if (getIntent().getExtras().getString("type") != null) {
+                    type = getIntent().getExtras().getString("type");
+                }
+            }
+            if (getIntent().getExtras().getString("pattern") != null) {
+                pattern = new String("/") + getIntent().getExtras().getString("pattern") + new String("/");
+            }
+            if (getIntent().getExtras().getInt("page") > 0) {
+                cursor = getIntent().getExtras().getInt("page");
+            }
+            if (getIntent().getExtras().getInt("start") > 0) {
+                timestamp_start = getIntent().getExtras().getInt("start");
+            }
+            if (getIntent().getExtras().getInt("stop") > 0) {
+                timestamp_stop = getIntent().getExtras().getInt("stop");
+            }
+            Toast.makeText(SearchActivity.this, base, Toast.LENGTH_SHORT).show();
+        }
+
+        try {
+            qREST();
+        } catch (JSONException e) {
+            String error = "Error parsing server's response [" + e.toString() + "]";
+            Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -48,19 +132,11 @@ public class SearchActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
+    private String renderFirstname(String input) {
+        return Character.toUpperCase(input.charAt(0)) + input.substring(1);
+    }
 
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_search, container, false);
-            return rootView;
-        }
+    private String renderLastname(String input) {
+        return input.toUpperCase();
     }
 }
