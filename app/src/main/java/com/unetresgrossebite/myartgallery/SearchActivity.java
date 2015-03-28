@@ -4,6 +4,9 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -148,6 +151,16 @@ public class SearchActivity extends ActionBarActivity {
                             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                             e.printStackTrace();
                         }
+                    }
+                });
+                list.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position,
+                                            long id) {
+                        ListView list = (ListView) findViewById(R.id.list);
+                        String item = list.getItemAtPosition(position).toString();
+                        Toast.makeText(getApplicationContext(),
+                                "You selected : " + item, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
