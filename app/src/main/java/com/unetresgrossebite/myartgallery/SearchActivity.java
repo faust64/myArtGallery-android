@@ -31,6 +31,7 @@ public class SearchActivity extends ActionBarActivity {
         String url, cursorurl = "", filterurl;
         myRestClient client = new myRestClient();
 
+        //context.getResources().getConfiguration().locale.getDisplayCountry(), ou getCountry();
         if (cursor > 0) { cursorurl = "/+" + Integer.toString(cursor * responsePerPage); }
         if (new String("").equals(pattern)) {
             if (new String("events").equals(base)) { url = base + cursorurl + "/"; }

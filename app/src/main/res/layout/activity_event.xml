@@ -15,14 +15,28 @@
         android:layout_width="fill_parent"
         android:gravity="center"
         android:textColor="@color/MidnightBlue"
+        android:textStyle="bold"
+        android:textSize="@dimen/abc_text_size_title_material"
         android:shadowColor="@color/Indigo"
         android:background="@color/Wheat"
         android:layout_height="@dimen/abc_action_bar_stacked_max_height" />
+    <TextView
+        android:id="@+id/event_descr"
+        android:layout_width="fill_parent"
+        android:gravity="center"
+        android:text=" "
+        android:textColor="@color/MidnightBlue"
+        android:textStyle="italic"
+        android:textSize="@dimen/abc_text_size_small_material"
+        android:shadowColor="@color/Indigo"
+        android:background="@color/Wheat"
+        android:layout_height="@dimen/abc_action_button_min_height_material"
+        android:layout_below="@id/event_title" />
     <ListView
         android:id="@+id/event_data"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="center"
         android:background="@color/Wheat"
-        android:layout_below="@id/event_title" />
+        android:layout_below="@id/event_descr" />
 </RelativeLayout>

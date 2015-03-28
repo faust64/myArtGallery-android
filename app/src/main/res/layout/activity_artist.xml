@@ -15,6 +15,8 @@
         android:layout_width="fill_parent"
         android:gravity="center"
         android:textColor="@color/MidnightBlue"
+        android:textStyle="bold"
+        android:textSize="@dimen/abc_text_size_title_material"
         android:shadowColor="@color/Indigo"
         android:background="@color/Wheat"
         android:layout_height="@dimen/abc_action_bar_stacked_max_height" />
