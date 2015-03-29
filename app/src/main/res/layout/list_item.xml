@@ -9,7 +9,7 @@
 
     <TextView
         android:id="@+id/list_item_data"
-        android:background="@color/Wheat"
+        android:background="@drawable/selector_list_item"
         android:textColor="@color/Navy"
         android:shadowColor="@color/DarkBlue"
         android:layout_width="match_parent"

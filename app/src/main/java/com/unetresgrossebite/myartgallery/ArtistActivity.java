@@ -58,10 +58,10 @@ public class ArtistActivity extends ActionBarActivity {
 
                     if (title == null || data == null) { return; }
                     if (artistdata.has("firstname")) {
-                        tmp = renderFirstname(artistdata.getString("firstname")) + " "
-                                + renderLastname(artistdata.getString("lastname"));
+                        tmp = capitalize(artistdata.getString("firstname")) + " "
+                                + artistdata.getString("lastname").toUpperCase();
                     } else {
-                        tmp = renderLastname(artistdata.getString("lastname"));
+                        tmp = artistdata.getString("lastname").toUpperCase();
                     }
                     title.setText(tmp);
 
@@ -94,7 +94,11 @@ public class ArtistActivity extends ActionBarActivity {
                         itemsReturned.add(tmp);
                     }
                     if (artistdata.has("turnover")) {
-                        tmp = "Turnover: " + artistdata.getString("turnover");
+                        String wk = artistdata.getString("turnover");
+                        String currency = wk.substring(wk.length() - 1);
+                        String value = wk.substring(0, wk.length() - 1);
+
+                        tmp = "Turnover: " + renderCurrency(value) + " (" + currency + ")";
                         itemsReturned.add(tmp);
                     }
                     if (artistdata.has("rank")) {
@@ -161,11 +165,33 @@ public class ArtistActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private String renderFirstname(String input) {
-        return Character.toUpperCase(input.charAt(0)) + input.substring(1);
+    private String capitalize(final String str) {
+        if (str.isEmpty() == true) {
+            return str;
+        }
+
+        final char[] buffer = str.toCharArray();
+        boolean capitalizeNext = true;
+        for (int i = 0; i < buffer.length; i++) {
+            char ch = buffer[i];
+            if (ch == ' ') { capitalizeNext = true; }
+            else if (capitalizeNext && ch >= 'a' && ch <= 'z') {
+                buffer[i] = (char)(ch - 32);
+                capitalizeNext = false;
+            } else { capitalizeNext = false; }
+        }
+
+        return new String(buffer);
     }
 
-    private String renderLastname(String input) {
-        return input.toUpperCase();
+    private String renderCurrency(String input) {
+        int len = input.length();
+
+        if (len > 3) {
+            String tmp = input.substring(len - 3);
+            return renderCurrency(input.substring(0, len - 3)) + "," + tmp;
+        }
+
+        return input;
     }
 }

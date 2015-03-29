@@ -24,6 +24,8 @@
         android:id="@+id/artist_data"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:clickable="false"
+        android:listSelector="@android:color/transparent"
         android:gravity="center"
         android:background="@color/Wheat"
         android:layout_below="@id/artist_name" />

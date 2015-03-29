@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SearchActivity extends ActionBarActivity {
-    private String base = null, type = null, pattern = "";
+    private String base = null, author = null, type = null, pattern = "";
     private int timestamp_start = 0, timestamp_stop = 0, cursor = 0, responsePerPage = 20;
     private ArrayAdapter itemsAdapter = null;
     Boolean bottom_reached = false;
@@ -41,6 +41,7 @@ public class SearchActivity extends ActionBarActivity {
             else { url = "top/" + base + cursorurl + "/"; }
         } else { url = "search/" + base + cursorurl + "/" + pattern + "/"; }
         if (type != null) { filterurl = url + "?type=" + type; }
+        else if (author != null) { filterurl = url + "?from=" + author; }
         else { filterurl = url; }
 
         if (this.debug) {
@@ -51,12 +52,9 @@ public class SearchActivity extends ActionBarActivity {
         client.get(filterurl, null, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                if (debug) {
+                if (debug == true) {
                     Toast.makeText(getApplicationContext(), "Unexpected object received: "
                             + response.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received",
-                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -96,13 +94,13 @@ public class SearchActivity extends ActionBarActivity {
 
                         if (iterate.has("lastname")) {
                             if (iterate.has("firstname")) {
-                                dname = renderFirstname(iterate.getString("firstname"))
-                                      + " " + renderLastname(iterate.getString("lastname"));
+                                dname = capitalize(iterate.getString("firstname"))
+                                      + " " + iterate.getString("lastname").toUpperCase();
                             } else {
-                                dname = renderLastname(iterate.getString("lastname"));
+                                dname = iterate.getString("lastname").toUpperCase();
                             }
                         } else if (iterate.has("dname")) {
-                            dname = renderFirstname(iterate.getString("dname").replaceAll("-", " "));
+                            dname = capitalize(iterate.getString("dname").replaceAll("-", " "));
                         } else { dname = "Unrecognized object structure"; }
                         responseArray[i] = dname;
                     }
@@ -132,9 +130,13 @@ public class SearchActivity extends ActionBarActivity {
         setContentView(R.layout.activity_search);
 
         this.base = getIntent().getExtras().getString("base");
-        if (new String("events").equals(base)) {
+        if (new String("events").equals(this.base)) {
             if (getIntent().getExtras().getString("type") != null) {
                 this.type = getIntent().getExtras().getString("type");
+            }
+        } else if (new String("artworks").equals(this.base)) {
+            if (getIntent().getExtras().getString("author") != null) {
+                this.author = getIntent().getExtras().getString("author");
             }
         }
         if (getIntent().getExtras().getString("pattern") != null) {
@@ -247,12 +249,23 @@ public class SearchActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private String renderFirstname(String input) {
-        return Character.toUpperCase(input.charAt(0)) + input.substring(1);
-    }
+    private String capitalize(final String str) {
+        if (str.isEmpty() == true) {
+            return str;
+        }
 
-    private String renderLastname(String input) {
-        return input.toUpperCase();
+        final char[] buffer = str.toCharArray();
+        boolean capitalizeNext = true;
+        for (int i = 0; i < buffer.length; i++) {
+            char ch = buffer[i];
+            if (ch == ' ') { capitalizeNext = true; }
+            else if (capitalizeNext && ch >= 'a' && ch <= 'z') {
+                buffer[i] = (char)(ch - 32);
+                capitalizeNext = false;
+            } else { capitalizeNext = false; }
+        }
+
+        return new String(buffer);
     }
 
     private String renderDname(String input) {
