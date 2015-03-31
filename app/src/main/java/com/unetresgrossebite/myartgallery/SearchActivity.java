@@ -24,25 +24,43 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SearchActivity extends ActionBarActivity {
-    private String base = null, author = null, type = null, pattern = "";
+    private String base = null, author = null, type = null, pattern = "", country = null;
     private int timestamp_start = 0, timestamp_stop = 0, cursor = 0, responsePerPage = 20;
     private ArrayAdapter itemsAdapter = null;
     Boolean bottom_reached = false;
     final private Boolean debug = false;
 
     private void qREST() throws JSONException {
-        String url, cursorurl = "", filterurl;
+        String url, cursorurl = "", filterurl = null;
         myRestClient client = new myRestClient();
 
-        //context.getResources().getConfiguration().locale.getDisplayCountry(), ou getCountry();
         if (cursor > 0) { cursorurl = "/+" + Integer.toString(cursor * responsePerPage); }
-        if (new String("").equals(pattern)) {
-            if (new String("events").equals(base)) { url = base + cursorurl + "/"; }
-            else { url = "top/" + base + cursorurl + "/"; }
-        } else { url = "search/" + base + cursorurl + "/" + pattern + "/"; }
-        if (type != null) { filterurl = url + "?type=" + type; }
-        else if (author != null) { filterurl = url + "?from=" + author; }
-        else { filterurl = url; }
+        if (this.pattern.equals("")) {
+            if (this.base.equals("events")) { url = this.base + cursorurl + "/"; }
+            else if (this.author == null) { url = "top/" + this.base + cursorurl + "/"; }
+            else { url = "search/" + this.base + cursorurl + "/*/"; }
+        } else { url = "search/" + this.base + cursorurl + "/" + this.pattern + "/"; }
+        if (this.type != null) { filterurl = url + "?type=" + this.type; }
+        if (this.author != null) {
+            String tmp = "authorid=" + this.author;
+            if (filterurl != null) { filterurl += "&" + tmp; }
+            else { filterurl = url + "?" + tmp; }
+        }
+        if (this.timestamp_start > 0) {
+            String tmp = "start=" + new Integer(this.timestamp_start).toString();
+            if (filterurl != null) { filterurl += "&" + tmp; }
+            else { filterurl = url + "?" + tmp; }
+        }
+        if (this.timestamp_stop > 0) {
+            String tmp = "stop=" + new Integer(this.timestamp_stop).toString();
+            if (filterurl != null) { filterurl += "&" + tmp; }
+            else { filterurl = url + "?" + tmp; }
+        }
+        if (this.country != null) {
+            String tmp = "country=" + this.country;
+            if (filterurl != null) { filterurl += "&" + tmp; }
+            else { filterurl = url + "?" + tmp; }
+        } else if (filterurl == null) { filterurl = url; }
 
         if (this.debug) {
             Toast.makeText(SearchActivity.this, myRestClient.getAbsoluteUrl(filterurl),
@@ -130,13 +148,18 @@ public class SearchActivity extends ActionBarActivity {
         setContentView(R.layout.activity_search);
 
         this.base = getIntent().getExtras().getString("base");
-        if (new String("events").equals(this.base)) {
+        if (this.base.equals("events")) {
             if (getIntent().getExtras().getString("type") != null) {
                 this.type = getIntent().getExtras().getString("type");
             }
-        } else if (new String("artworks").equals(this.base)) {
-            if (getIntent().getExtras().getString("author") != null) {
-                this.author = getIntent().getExtras().getString("author");
+            if (getIntent().getExtras().getString("country") != null) {
+                this.country = renderCountry(getIntent().getExtras().getString("country"));
+            } else {
+                this.country = renderCountry(this.getResources().getConfiguration().locale.getDisplayCountry());
+            }
+        } else if (this.base.equals("artworks")) {
+            if (getIntent().getExtras().getString("artistid") != null) {
+                this.author = getIntent().getExtras().getString("artistid");
             }
         }
         if (getIntent().getExtras().getString("pattern") != null) {
@@ -275,5 +298,11 @@ public class SearchActivity extends ActionBarActivity {
         String tmp4 = tmp3.replaceAll("[īíǐì]", "i").replaceAll("[ōóǒòö]", "o");
 
         return tmp4;
+    }
+
+    private String renderCountry(String input) {
+        if (input.equals("United States")) {
+            return new String("USA");
+        } else { return input; }
     }
 }

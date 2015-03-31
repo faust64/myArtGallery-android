@@ -1,9 +1,13 @@
 package com.unetresgrossebite.myartgallery;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -85,8 +89,7 @@ public class ArtistActivity extends ActionBarActivity {
                     }
                     if (artistdata.has("priceidx")) {
                         String lookup = artistdata.getString("priceidx");
-                        if (new String("growing").equals(lookup)
-                            || new String("decreasing").equals(lookup)) {
+                        if (lookup.equals("growing") || lookup.equals("decreasing")) {
                             tmp = "Prices are globally " + lookup;
                         } else {
                             tmp = "Mostly sold: " + lookup;
@@ -140,6 +143,33 @@ public class ArtistActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist);
         this.dname = getIntent().getExtras().getString("dname");
+
+        ListView list = (ListView) findViewById(R.id.artist_data);
+        if (list != null) {
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    try {
+                        ListView list = (ListView) findViewById(R.id.artist_data);
+                        String item = list.getItemAtPosition(position).toString();
+                        Intent showResult = null;
+
+                        if (item.equals("Search for related artworks") && artist_id != null) {
+                            showResult = new Intent(ArtistActivity.this, SearchActivity.class);
+                            showResult.putExtra("base", "artworks");
+                            showResult.putExtra("artistid", artist_id);
+                        }
+                        if (showResult != null) {
+                            startActivity(showResult);
+                        }
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(getApplicationContext(),
+                                "No application can handle this request", Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
 
         try {
             qREST();
