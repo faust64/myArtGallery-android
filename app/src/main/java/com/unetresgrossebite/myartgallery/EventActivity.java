@@ -90,18 +90,15 @@ public class EventActivity extends ActionBarActivity {
                     }
                     if (eventdata.has("tel")) {
                         phonenr = eventdata.getString("tel");
-                        tmp = "Phone: " + phonenr;
-                        itemsReturned.add(tmp);
+                        itemsReturned.add("Phone: " + phonenr);
                     }
                     if (eventdata.has("url")) {
-                        tmp = "Gallery site link";
                         link = eventdata.getString("url");
-                        itemsReturned.add(tmp);
+                        itemsReturned.add("Gallery site link");
                     }
                     if (eventdata.has("maps")) {
-                        tmp = "Show in GoogleMaps";
                         maps = eventdata.getString("maps");
-                        itemsReturned.add(tmp);
+                        itemsReturned.add("Show in GoogleMaps");
                     }
                     if (eventdata.has("title")) {
                         title = renderFirstname(eventdata.getString("title"));

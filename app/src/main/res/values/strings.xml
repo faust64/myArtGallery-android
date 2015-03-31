@@ -5,9 +5,10 @@
     <string name="action_search_artwork">Search Artwork</string>
     <string name="action_search_event">Search Event</string>
     <string name="action_settings">Settings</string>
-    <string name="msg_query_in_progress">Querying database...</string>
+    <string name="msg_query_in_progress">Querying database&#8230;</string>
     <string name="msg_search">Search</string>
     <string name="title_activity_artist">Artist details</string>
+    <string name="title_activity_artwork">Artwork details</string>
     <string name="title_activity_event">Event details</string>
     <string name="title_activity_search">Database Search</string>
 </resources>

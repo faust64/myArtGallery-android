@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/icon"
@@ -44,6 +45,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.unetresgrossebite.myartgallery.SearchActivity" />
         </activity>
+        <activity
+            android:name=".ArtworkActivity"
+            android:label="@string/title_activity_artwork"
+            android:parentActivityName=".SearchActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.unetresgrossebite.myartgallery.SearchActivity" />
+        </activity>
     </application>
-
 </manifest>

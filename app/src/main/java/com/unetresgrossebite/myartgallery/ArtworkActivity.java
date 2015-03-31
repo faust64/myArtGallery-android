@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,16 +20,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 
-public class ArtistActivity extends ActionBarActivity {
+public class ArtworkActivity extends ActionBarActivity {
     private String dname, artist_id = null;
     final private Boolean debug = false;
+    final private String datefmt = "dd/MM/yyyy";
 
     private void qREST() throws JSONException {
-        String url = "artists/" + this.dname + "/";
+        String url = "artworks/" + this.dname + "/";
         myRestClient client = new myRestClient();
 
+        if (artist_id != null) {
+            url += "?authorid=" + artist_id;
+        }
+
         if (this.debug) {
-            Toast.makeText(ArtistActivity.this, myRestClient.getAbsoluteUrl(url),
+            Toast.makeText(ArtworkActivity.this, myRestClient.getAbsoluteUrl(url),
                     Toast.LENGTH_SHORT).show();
         }
 
@@ -47,78 +53,68 @@ public class ArtistActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 try {
-                    TextView title = (TextView) findViewById(R.id.artist_name);
+                    TextView title = (TextView) findViewById(R.id.artwork_name);
 
                     if (response.length() == 0) {
                         title.setText("no records in this base yet");
                         return;
                     }
 
-                    ListView data = (ListView) findViewById(R.id.artist_data);
-                    JSONObject artistdata = response.getJSONObject(0);
+                    ListView data = (ListView) findViewById(R.id.artwork_data);
+                    JSONObject artworkdata = response.getJSONObject(0);
                     ArrayList itemsReturned = new ArrayList<String>();
                     ArrayAdapter itemsAdapter = null;
                     String tmp = null;
+                    String[] prices = new String[]{ "hammer", "lowest", "highest", "premium"};
 
                     if (title == null || data == null) { return; }
-                    if (artistdata.has("firstname")) {
-                        tmp = capitalize(artistdata.getString("firstname")) + " "
-                                + artistdata.getString("lastname").toUpperCase();
-                    } else {
-                        tmp = artistdata.getString("lastname").toUpperCase();
-                    }
+                    if (artworkdata.has("title")) {
+                        tmp = capitalize(artworkdata.getString("title"));
+                    } else { tmp = "Artwork not found"; }
                     title.setText(tmp);
 
-                    if (artistdata.has("dstart")) {
-                        if (artistdata.has("dstop")) {
-                            String a, b;
-                            a = artistdata.getString("dstart");
-                            b = artistdata.getString("dstop");
-
-                            if (a.equals(b)) {
-                                tmp = "Active in " + a;
-                            }
-                            else {
-                                tmp = "Active from " + a + " to " + b;
-                            }
-                        }
-                        else {
-                            tmp = "Active in " + artistdata.getString("dstart");
-                        }
+                    if (artworkdata.has("discipline")) {
+                        if (artworkdata.has("type")) {
+                            tmp = artworkdata.getString("discipline") + "-"
+                                    + artworkdata.getString("type");
+                        } else { tmp = artworkdata.getString("discipline"); }
                         itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("priceidx")) {
-                        String lookup = artistdata.getString("priceidx");
-                        if (lookup.equals("growing") || lookup.equals("decreasing")) {
-                            tmp = "Prices are globally " + lookup;
-                        } else {
-                            tmp = "Mostly sold: " + lookup;
+                    if (artworkdata.has("technique")) {
+                        itemsReturned.add(artworkdata.getString("technique"));
+                    }
+                    if (artworkdata.has("distinctions")) {
+                        itemsReturned.add(artworkdata.getString("distinctions"));
+                    }
+                    if (artworkdata.has("authordn")) {
+                        itemsReturned.add("by " + capitalize(artworkdata.getString("authordn")));
+                    }
+                    if (artworkdata.has("completed")) {
+                        if (artworkdata.has("started")) {
+                            itemsReturned.add("Started on " + artworkdata.getString("started"));
                         }
-                        itemsReturned.add(tmp);
+                        itemsReturned.add("Completed on " + artworkdata.getString("completed"));
                     }
-                    if (artistdata.has("turnover")) {
-                        String wk = artistdata.getString("turnover");
-                        String currency = wk.substring(wk.length() - 1);
-                        String value = wk.substring(0, wk.length() - 1);
-
-                        tmp = "Turnover: " + renderCurrency(value) + " (" + currency + ")";
-                        itemsReturned.add(tmp);
+                    if (artworkdata.has("auctionhouse")) {
+                        itemsReturned.add("Sold in " + artworkdata.getString("auctionhouse"));
                     }
-                    if (artistdata.has("rank")) {
-                        itemsReturned.add("Rank: " + artistdata.getString("rank"));
+                    if (artworkdata.has("lotid")) {
+                        itemsReturned.add("Lot ID: " + artworkdata.getString("lotid"));
                     }
-                    if (artistdata.has("bestcountry")) {
-                        if (artistdata.has("bestamount")) {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry") + " ("
-                                    + artistdata.getString("bestamount") + ")";
-                        } else {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry");
+                    if (artworkdata.has("selldate")) {
+                        itemsReturned.add( "Sold on " + DateFormat.format(datefmt,
+                                artworkdata.getInt("selldate")).toString());
+                    }
+                    for (String what : prices ) {
+                        String field = what + "price";
+                        if (artworkdata.has(field)) {
+                            itemsReturned.add(capitalize(what) + " price: "
+                                    + artworkdata.getString(field));
                         }
-                        itemsReturned.add(tmp);
                     }
-                    if (artistdata.has("id")) {
-                        artist_id = artistdata.getString("id");
-                        itemsReturned.add("Search for related artworks");
+                    if (artworkdata.has("authorid")) {
+                        artist_id = artworkdata.getString("authorid");
+                        itemsReturned.add("Search for artworks from the same author");
                     }
                     if (debug) {
                         Toast.makeText(getApplicationContext(), itemsReturned.toString(),
@@ -139,21 +135,25 @@ public class ArtistActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist);
+        setContentView(R.layout.activity_artwork);
         this.dname = getIntent().getExtras().getString("dname");
+        if (getIntent().getExtras().getString("artistid") != null) {
+            this.artist_id = getIntent().getExtras().getString("artistid");
+        }
 
-        ListView list = (ListView) findViewById(R.id.artist_data);
+        ListView list = (ListView) findViewById(R.id.artwork_data);
         if (list != null) {
             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     try {
-                        ListView list = (ListView) findViewById(R.id.artist_data);
+                        ListView list = (ListView) findViewById(R.id.artwork_data);
                         String item = list.getItemAtPosition(position).toString();
                         Intent showResult = null;
 
-                        if (item.equals("Search for related artworks") && artist_id != null) {
-                            showResult = new Intent(ArtistActivity.this, SearchActivity.class);
+                        if (item.equals("Search for artworks from the same author")
+                                && artist_id != null) {
+                            showResult = new Intent(ArtworkActivity.this, SearchActivity.class);
                             showResult.putExtra("base", "artworks");
                             showResult.putExtra("artistid", artist_id);
                         }
@@ -178,9 +178,10 @@ public class ArtistActivity extends ActionBarActivity {
         }
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_artist, menu);
+        getMenuInflater().inflate(R.menu.menu_artwork, menu);
         return true;
     }
 
@@ -208,16 +209,5 @@ public class ArtistActivity extends ActionBarActivity {
         }
 
         return new String(buffer);
-    }
-
-    private String renderCurrency(String input) {
-        int len = input.length();
-
-        if (len > 3) {
-            String tmp = input.substring(len - 3);
-            return renderCurrency(input.substring(0, len - 3)) + "," + tmp;
-        }
-
-        return input;
     }
 }

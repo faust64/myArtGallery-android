@@ -3,10 +3,6 @@ package com.unetresgrossebite.myartgallery;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 
-/**
- * Created by syn on 3/27/15.
- */
-
 public abstract class EndlessScrollListener implements OnScrollListener {
     private int visibleThreshold = 5;
     private int currentPage = 0;

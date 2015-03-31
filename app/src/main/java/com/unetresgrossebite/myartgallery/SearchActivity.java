@@ -225,8 +225,7 @@ public class SearchActivity extends ActionBarActivity {
                     if (base.equals("artists")) {
                         showResult = new Intent(SearchActivity.this, ArtistActivity.class);
                     } else if (base.equals("artworks")) {
-                        Toast.makeText(getApplicationContext(),
-                                "FIXME renderArtwork: " + renderDname(item), Toast.LENGTH_SHORT).show();
+                        showResult = new Intent(SearchActivity.this, ArtworkActivity.class);
                     } else if (base.equals("events")) {
                         showResult = new Intent(SearchActivity.this, EventActivity.class);
                     }
@@ -265,17 +264,13 @@ public class SearchActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        if (id == R.id.action_settings) { return true; }
 
         return super.onOptionsItemSelected(item);
     }
 
     private String capitalize(final String str) {
-        if (str.isEmpty() == true) {
-            return str;
-        }
+        if (str.isEmpty() == true) { return str; }
 
         final char[] buffer = str.toCharArray();
         boolean capitalizeNext = true;
