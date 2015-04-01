@@ -44,7 +44,7 @@ public class EventActivity extends ActionBarActivity {
                     TextView titleview = (TextView) findViewById(R.id.event_title);
 
                     if (eventdata.length() == 0) {
-                        titleview.setText("no records in this base yet");
+                        titleview.setText(getText(R.string.msg_no_records_in_db));
                         return;
                     }
 
@@ -62,11 +62,14 @@ public class EventActivity extends ActionBarActivity {
                             timestamp_stop = eventdata.getLong("stops") * 1000;
                         } else { timestamp_stop = timestamp_start; }
                         if (timestamp_start == timestamp_stop) {
-                            tmp = "The " + DateFormat.format(datefmt, timestamp_start).toString();
+                            tmp = getString(R.string.msg_the_date)+ " "
+                                    + DateFormat.format(datefmt, timestamp_start).toString();
                         }
                         else {
-                            tmp = "From " + DateFormat.format(datefmt, timestamp_start).toString()
-                                    + " to " + DateFormat.format(datefmt, timestamp_stop).toString();
+                            tmp = getString(R.string.msg_from_date) + " "
+                                    + DateFormat.format(datefmt, timestamp_start).toString()
+                                    + " " + getString(R.string.msg_to_date) + " "
+                                    + DateFormat.format(datefmt, timestamp_stop).toString();
                         }
                         itemsReturned.add(tmp);
                     }
@@ -90,15 +93,15 @@ public class EventActivity extends ActionBarActivity {
                     }
                     if (eventdata.has("tel")) {
                         phonenr = eventdata.getString("tel");
-                        itemsReturned.add("Phone: " + phonenr);
+                        itemsReturned.add(getString(R.string.msg_phone) + ": " + phonenr);
                     }
                     if (eventdata.has("url")) {
                         link = eventdata.getString("url");
-                        itemsReturned.add("Gallery site link");
+                        itemsReturned.add(getString(R.string.msg_gallery_link));
                     }
                     if (eventdata.has("maps")) {
                         maps = eventdata.getString("maps");
-                        itemsReturned.add("Show in GoogleMaps");
+                        itemsReturned.add(getString(R.string.msg_show_in_gmaps));
                     }
                     if (eventdata.has("title")) {
                         title = renderFirstname(eventdata.getString("title"));
@@ -107,21 +110,18 @@ public class EventActivity extends ActionBarActivity {
                     }
                     if (eventdata.has("expo")) {
                         if (eventdata.getBoolean("expo") == true) {
-                            descr = "Exposition";
+                            descr = getString(R.string.msg_expo);
                         }
                     } else if (eventdata.has("auction")) {
                         if (eventdata.getBoolean("auction") == true) {
-                            descr = "Auction";
+                            descr = getString(R.string.msg_auction);
                         }
                     }
                     if (eventdata.has("group")) {
-                        if (descr != null) {
-                            if (eventdata.getBoolean("group") == true) { descr = descr + ", group show"; }
-                            else { descr = descr + ", solo show"; }
-                        } else {
-                            if (eventdata.getBoolean("group") == true) { descr = "Group show"; }
-                            else { descr = "Solo show"; }
-                        }
+                        if (descr != null) { descr += ", "; } else { descr = ""; }
+                        if (eventdata.getBoolean("group") == true) {
+                            descr = getString(R.string.msg_group_show);
+                        } else { descr = getString(R.string.msg_solo_show); }
                     }
                     titleview.setText(title);
                     descrview.setText(descr);
@@ -133,7 +133,8 @@ public class EventActivity extends ActionBarActivity {
                             R.layout.list_item, R.id.list_item_data, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
-                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    String error = getString(R.string.err_parsing_server_response)
+                            + " [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -142,11 +143,12 @@ public class EventActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 if (debug) {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
-                            + response.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received",
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object) + ": " + response.toString(),
                             Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -168,16 +170,18 @@ public class EventActivity extends ActionBarActivity {
                         String item = list.getItemAtPosition(position).toString();
                         Intent showResult = null;
 
-                        if (item.equals("Show in GoogleMaps") && maps != null) {
+                        if (item.equals(getString(R.string.msg_show_in_gmaps)) && maps != null) {
                             showResult = new Intent(Intent.ACTION_VIEW,
                                     Uri.parse("https://maps.google.com/" + maps));
-                        } else if (item.equals("Gallery site link") && link != null) {
+                        } else if (item.equals(getString(R.string.msg_gallery_link))
+                                && link != null) {
                             showResult = new Intent(Intent.ACTION_VIEW,
                                     Uri.parse("http://" + link));
-                        } else if (item.contains("Phone: ")) {
+                        } else if (item.contains(getString(R.string.msg_phone) + ": ")) {
                             showResult = new Intent(Intent.ACTION_DIAL,
                                     Uri.parse("tel:" + phonenr));
-                        } else if (item.matches("From [0-9/]* to [0-9/]*") && timestamp_start > 0) {
+                        } else if (item.matches(getString(R.string.msg_from_date) + " [0-9/]* "
+                                + getString(R.string.msg_to_date) + " [0-9/]*") && timestamp_start > 0) {
                             showResult = new Intent(Intent.ACTION_EDIT);
                             showResult.setType("vnd.android.cursor.item/event");
                             showResult.putExtra("beginTime", timestamp_start * 1000);
@@ -208,7 +212,7 @@ public class EventActivity extends ActionBarActivity {
                         }
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(getApplicationContext(),
-                                "No application can handle this request", Toast.LENGTH_LONG).show();
+                                getString(R.string.err_unhandled_intent), Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
                 }
@@ -218,7 +222,8 @@ public class EventActivity extends ActionBarActivity {
         try {
             qREST();
         } catch (JSONException e) {
-            String error = "Error parsing server's response [" + e.toString() + "]";
+            String error = getString(R.string.err_parsing_server_response)
+                    + " [" + e.toString() + "]";
             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }

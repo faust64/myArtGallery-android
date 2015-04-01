@@ -42,11 +42,12 @@ public class ArtworkActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 if (debug) {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
-                            + response.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received",
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object) + ": " + response.toString(),
                             Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -56,7 +57,7 @@ public class ArtworkActivity extends ActionBarActivity {
                     TextView title = (TextView) findViewById(R.id.artwork_name);
 
                     if (response.length() == 0) {
-                        title.setText("no records in this base yet");
+                        title.setText(getString(R.string.msg_no_records_in_db));
                         return;
                     }
 
@@ -66,11 +67,13 @@ public class ArtworkActivity extends ActionBarActivity {
                     ArrayAdapter itemsAdapter = null;
                     String tmp = null;
                     String[] prices = new String[]{ "hammer", "lowest", "highest", "premium"};
+                    String[] dprices = getResources().getStringArray(R.array.list_prices);
+                    int it = 0;
 
                     if (title == null || data == null) { return; }
                     if (artworkdata.has("title")) {
                         tmp = capitalize(artworkdata.getString("title"));
-                    } else { tmp = "Artwork not found"; }
+                    } else { tmp = capitalize(artworkdata.getString("dname")); }
                     title.setText(tmp);
 
                     if (artworkdata.has("discipline")) {
@@ -87,34 +90,39 @@ public class ArtworkActivity extends ActionBarActivity {
                         itemsReturned.add(artworkdata.getString("distinctions"));
                     }
                     if (artworkdata.has("authordn")) {
-                        itemsReturned.add("by " + capitalize(artworkdata.getString("authordn")));
+                        itemsReturned.add(getString(R.string.msg_by) + " "
+                                + capitalize(artworkdata.getString("authordn")));
                     }
                     if (artworkdata.has("completed")) {
                         if (artworkdata.has("started")) {
-                            itemsReturned.add("Started on " + artworkdata.getString("started"));
+                            itemsReturned.add(getString(R.string.msg_started_on) + " "
+                                    + artworkdata.getString("started"));
                         }
-                        itemsReturned.add("Completed on " + artworkdata.getString("completed"));
+                        itemsReturned.add(getString(R.string.msg_completed_on) + " "
+                                + artworkdata.getString("completed"));
                     }
                     if (artworkdata.has("auctionhouse")) {
-                        itemsReturned.add("Sold in " + artworkdata.getString("auctionhouse"));
+                        itemsReturned.add(getString(R.string.msg_sold_in) + " "
+                                + artworkdata.getString("auctionhouse"));
                     }
                     if (artworkdata.has("lotid")) {
-                        itemsReturned.add("Lot ID: " + artworkdata.getString("lotid"));
+                        itemsReturned.add(getString(R.string.msg_lot_id) + ": "
+                                + artworkdata.getString("lotid"));
                     }
                     if (artworkdata.has("selldate")) {
-                        itemsReturned.add( "Sold on " + DateFormat.format(datefmt,
+                        itemsReturned.add(getString(R.string.msg_sold_on) + " "
+                                + DateFormat.format(datefmt,
                                 artworkdata.getInt("selldate")).toString());
                     }
-                    for (String what : prices ) {
-                        String field = what + "price";
-                        if (artworkdata.has(field)) {
-                            itemsReturned.add(capitalize(what) + " price: "
-                                    + artworkdata.getString(field));
-                        }
+                    for (it = 0; it < prices.length && it < dprices.length; it++) {
+                        if (artworkdata.has(prices[it] + "price")) {
+                            itemsReturned.add(capitalize(dprices[it]) + ": "
+                                    + artworkdata.getString(prices[it] + "price"));
+                        } /* ugly, should find a way to get string-array item "names" */
                     }
                     if (artworkdata.has("authorid")) {
                         artist_id = artworkdata.getString("authorid");
-                        itemsReturned.add("Search for artworks from the same author");
+                        itemsReturned.add(getString(R.string.msg_search_other_artworks));
                     }
                     if (debug) {
                         Toast.makeText(getApplicationContext(), itemsReturned.toString(),
@@ -124,7 +132,8 @@ public class ArtworkActivity extends ActionBarActivity {
                             R.layout.list_item, R.id.list_item_data, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
-                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    String error = getString(R.string.err_parsing_server_response)
+                            + " [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -151,7 +160,7 @@ public class ArtworkActivity extends ActionBarActivity {
                         String item = list.getItemAtPosition(position).toString();
                         Intent showResult = null;
 
-                        if (item.equals("Search for artworks from the same author")
+                        if (item.equals(getString(R.string.msg_search_other_artworks))
                                 && artist_id != null) {
                             showResult = new Intent(ArtworkActivity.this, SearchActivity.class);
                             showResult.putExtra("base", "artworks");
@@ -162,7 +171,7 @@ public class ArtworkActivity extends ActionBarActivity {
                         }
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(getApplicationContext(),
-                                "No application can handle this request", Toast.LENGTH_LONG).show();
+                                getString(R.string.err_unhandled_intent), Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
                 }
@@ -172,7 +181,8 @@ public class ArtworkActivity extends ActionBarActivity {
         try {
             qREST();
         } catch (JSONException e) {
-            String error = "Error parsing server's response [" + e.toString() + "]";
+            String error = getString(R.string.err_parsing_server_response)
+                    + " [" + e.toString() + "]";
             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }

@@ -36,11 +36,12 @@ public class ArtistActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 if (debug) {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
-                            + response.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received",
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object) + ": " + response.toString(),
                             Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -50,7 +51,7 @@ public class ArtistActivity extends ActionBarActivity {
                     TextView title = (TextView) findViewById(R.id.artist_name);
 
                     if (response.length() == 0) {
-                        title.setText("no records in this base yet");
+                        title.setText(getString(R.string.msg_no_records_in_db));
                         return;
                     }
 
@@ -64,9 +65,7 @@ public class ArtistActivity extends ActionBarActivity {
                     if (artistdata.has("firstname")) {
                         tmp = capitalize(artistdata.getString("firstname")) + " "
                                 + artistdata.getString("lastname").toUpperCase();
-                    } else {
-                        tmp = artistdata.getString("lastname").toUpperCase();
-                    }
+                    } else { tmp = artistdata.getString("lastname").toUpperCase(); }
                     title.setText(tmp);
 
                     if (artistdata.has("dstart")) {
@@ -90,9 +89,9 @@ public class ArtistActivity extends ActionBarActivity {
                     if (artistdata.has("priceidx")) {
                         String lookup = artistdata.getString("priceidx");
                         if (lookup.equals("growing") || lookup.equals("decreasing")) {
-                            tmp = "Prices are globally " + lookup;
+                            tmp = getString(R.string.msg_sell_tendency) + " " + lookup;
                         } else {
-                            tmp = "Mostly sold: " + lookup;
+                            tmp = getString(R.string.msg_mostly_sold) + ": " + lookup;
                         }
                         itemsReturned.add(tmp);
                     }
@@ -101,24 +100,25 @@ public class ArtistActivity extends ActionBarActivity {
                         String currency = wk.substring(wk.length() - 1);
                         String value = wk.substring(0, wk.length() - 1);
 
-                        tmp = "Turnover: " + renderCurrency(value) + " (" + currency + ")";
+                        tmp = getString(R.string.msg_turnover) + ": " + renderCurrency(value)
+                                + " (" + currency + ")";
                         itemsReturned.add(tmp);
                     }
                     if (artistdata.has("rank")) {
-                        itemsReturned.add("Rank: " + artistdata.getString("rank"));
+                        itemsReturned.add(getString(R.string.msg_rank) + ": "
+                                + artistdata.getString("rank"));
                     }
                     if (artistdata.has("bestcountry")) {
+                        tmp = getString(R.string.msg_mostly_sold_in) + " "
+                                + artistdata.getString("bestcountry");
                         if (artistdata.has("bestamount")) {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry") + " ("
-                                    + artistdata.getString("bestamount") + ")";
-                        } else {
-                            tmp = "Mostly sold in " + artistdata.getString("bestcountry");
+                            tmp += " (" + artistdata.getString("bestamount") + ")";
                         }
                         itemsReturned.add(tmp);
                     }
                     if (artistdata.has("id")) {
                         artist_id = artistdata.getString("id");
-                        itemsReturned.add("Search for related artworks");
+                        itemsReturned.add(getString(R.string.msg_search_related_artworks));
                     }
                     if (debug) {
                         Toast.makeText(getApplicationContext(), itemsReturned.toString(),
@@ -128,7 +128,8 @@ public class ArtistActivity extends ActionBarActivity {
                             R.layout.list_item, R.id.list_item_data, itemsReturned);
                     data.setAdapter(itemsAdapter);
                 } catch (JSONException e) {
-                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    String error = getString(R.string.err_parsing_server_response)
+                            + " [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -152,7 +153,7 @@ public class ArtistActivity extends ActionBarActivity {
                         String item = list.getItemAtPosition(position).toString();
                         Intent showResult = null;
 
-                        if (item.equals("Search for related artworks") && artist_id != null) {
+                        if (item.equals(getString(R.string.msg_search_related_artworks)) && artist_id != null) {
                             showResult = new Intent(ArtistActivity.this, SearchActivity.class);
                             showResult.putExtra("base", "artworks");
                             showResult.putExtra("artistid", artist_id);
@@ -162,7 +163,7 @@ public class ArtistActivity extends ActionBarActivity {
                         }
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(getApplicationContext(),
-                                "No application can handle this request", Toast.LENGTH_LONG).show();
+                                getString(R.string.err_unhandled_intent), Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
                 }
@@ -172,7 +173,8 @@ public class ArtistActivity extends ActionBarActivity {
         try {
             qREST();
         } catch (JSONException e) {
-            String error = "Error parsing server's response [" + e.toString() + "]";
+            String error = getString(R.string.err_parsing_server_response)
+                    + " [" + e.toString() + "]";
             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }

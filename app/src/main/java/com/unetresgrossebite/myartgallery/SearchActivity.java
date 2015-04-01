@@ -71,8 +71,9 @@ public class SearchActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 if (debug == true) {
-                    Toast.makeText(getApplicationContext(), "Unexpected object received: "
-                            + response.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.err_unexpected_object) + ": " + response.toString(),
+                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -87,9 +88,9 @@ public class SearchActivity extends ActionBarActivity {
                     if (view == null || qmsg == null) { return; }
                     if (cursor == 0 && response.length() == 0) {
                         if (pattern.equals("")) {
-                            qmsg.setText("no records in this base yet");
+                            qmsg.setText(getString(R.string.msg_no_records_in_db));
                         } else {
-                            qmsg.setText("no record matching such pattern");
+                            qmsg.setText(getString(R.string.msg_no_records_matching_pattern));
                             itemsAdapter.clear();
                         }
                         bottom_reached = true;
@@ -119,7 +120,7 @@ public class SearchActivity extends ActionBarActivity {
                             }
                         } else if (iterate.has("dname")) {
                             dname = capitalize(iterate.getString("dname").replaceAll("-", " "));
-                        } else { dname = "Unrecognized object structure"; }
+                        } else { dname = getString(R.string.msg_unrecognized_object_structure); }
                         responseArray[i] = dname;
                     }
 
@@ -134,7 +135,8 @@ public class SearchActivity extends ActionBarActivity {
                         itemsAdapter.addAll(itemsReturned);
                     }
                 } catch (JSONException e) {
-                    String error = "Error parsing server's response [" + e.toString() + "]";
+                    String error = getString(R.string.err_parsing_server_response)
+                            + " [" + e.toString() + "]";
                     Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -193,7 +195,8 @@ public class SearchActivity extends ActionBarActivity {
                     try {
                         qREST();
                     } catch (JSONException e) {
-                        String error = "Error parsing server's response [" + e.toString() + "]";
+                        String error = getString(R.string.err_parsing_server_response)
+                                + " [" + e.toString() + "]";
                         Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
@@ -209,7 +212,8 @@ public class SearchActivity extends ActionBarActivity {
                         cursor = page;
                         qREST();
                     } catch (JSONException e) {
-                        String error = "Error parsing server's response [" + e.toString() + "]";
+                        String error = getString(R.string.err_parsing_server_response)
+                                + " [" + e.toString() + "]";
                         Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
@@ -235,11 +239,12 @@ public class SearchActivity extends ActionBarActivity {
                         startActivity(showResult);
                     } else {
                         Toast.makeText(getApplicationContext(),
-                                "Unrecognized base: '" + base + "'", Toast.LENGTH_SHORT).show();
+                                getString(R.string.err_unrecognized_base) + ": '" + base + "'",
+                                Toast.LENGTH_SHORT).show();
                     }
                     if (debug == true) {
-                        Toast.makeText(getApplicationContext(),
-                                "You selected : " + renderDname(item), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), renderDname(item),
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -248,7 +253,8 @@ public class SearchActivity extends ActionBarActivity {
         try {
             qREST();
         } catch (JSONException e) {
-            String error = "Error parsing server's response [" + e.toString() + "]";
+            String error = getString(R.string.err_parsing_server_response)
+                    + " [" + e.toString() + "]";
             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
